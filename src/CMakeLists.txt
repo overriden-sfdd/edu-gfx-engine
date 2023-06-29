@@ -1,0 +1,5 @@
+add_subdirectory(api)
+add_subdirectory(gfx)
+add_subdirectory(objects)
+add_subdirectory(renderer)
+add_subdirectory(debug)

@@ -1,0 +1,14 @@
+[submodule "deps/glfw"]
+	path = deps/glfw
+	url = https://github.com/glfw/glfw.git
+	branch = 3.3.7
+[submodule "deps/glad"]
+	path = deps/glad
+	url = https://github.com/Dav1dde/glad.git
+	branch = v.2.0.2
+[submodule "deps/imgui"]
+	path = deps/imgui
+	url = git@github.com:ocornut/imgui.git
+[submodule "deps/assimp"]
+	path = deps/assimp
+	url = git@github.com:assimp/assimp.git
