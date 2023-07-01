@@ -28,16 +28,17 @@ public:
 
     const std::vector<Mesh> &meshes() const;
     const Shader *const shader() const;
+    Mapping::AssetId id() const;
 
 private:
     void loadModel(const std::string &path);
     void processNode(const aiNode *node, const aiScene *scene);
     Mesh processMesh(const aiMesh *mesh, const aiScene *scene);
     void loadMaterialTextures(std::vector<Texture> &out, const aiMaterial *mat, aiTextureType type,
-                              Mapping::TextureType textureType);
+                              const std::string &textureDir, Mapping::TextureId textureId);
 
     // Texture cache
-    std::unordered_set<Mapping::TextureType> m_loadedTextures;
+    std::unordered_set<Mapping::TextureId> m_loadedTextures;
 
     Mapping::AssetId m_id;
 

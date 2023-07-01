@@ -15,14 +15,14 @@ namespace edu::gfx
 class Texture
 {
 public:
-    explicit Texture(Mapping::TextureType textureType);
+    explicit Texture(Mapping::TextureId textureInnerId, const std::string &path);
 
     Texture(Texture &&) = default;
     Texture &operator=(Texture &&) = default;
 
     int32_t imageFormat() const;
     uint32_t id() const;
-    Mapping::TextureType type() const;
+    Mapping::TextureId innerId() const;
 
 private:
     struct ImageInfo
@@ -37,11 +37,11 @@ private:
     void setTextureOptions() const;
 
     void generateTexture();
-    void loadImage(uint8_t **const imageData);
+    void loadImage(uint8_t **imageData);
 
     ImageInfo m_textureImageInfo;
     uint32_t m_textureId;
-    Mapping::TextureType m_textureType;
+    Mapping::TextureId m_textureInnerId;
 };
 
 } // namespace edu::gfx

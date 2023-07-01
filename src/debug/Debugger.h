@@ -7,7 +7,6 @@
 #include <GLFW/glfw3.h>
 #include <imgui.h>
 
-#include <concepts>
 #include <memory>
 #include <string>
 #include <vector>

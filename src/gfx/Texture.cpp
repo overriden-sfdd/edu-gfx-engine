@@ -12,18 +12,12 @@
 namespace edu::gfx
 {
 
-Texture::Texture(const Mapping::TextureType textureType)
-    : m_textureType(textureType)
+Texture::Texture(const Mapping::TextureId textureInnerId, const std::string &path)
+    : m_textureInnerId(textureInnerId)
 {
     glGenTextures(1, &m_textureId);
     glBindTexture(GL_TEXTURE_2D, m_textureId);
-    const auto resIt = Mapping::TexResource().find(textureType);
-    if (resIt != Mapping::TexResource().cend()) {
-        m_textureImageInfo.imagePath = resIt->second;
-    } else {
-        std::cout << "ERROR couldn't find the texture resource with type: " << static_cast<uint32_t>(textureType)
-                  << '\n';
-    }
+    m_textureImageInfo.imagePath = path;
     generateTexture();
     setTextureOptions();
 }
@@ -49,9 +43,9 @@ uint32_t Texture::id() const
     return m_textureId;
 }
 
-Mapping::TextureType Texture::type() const
+Mapping::TextureId Texture::innerId() const
 {
-    return m_textureType;
+    return m_textureInnerId;
 }
 
 void Texture::setTextureOptions() const

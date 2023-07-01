@@ -23,9 +23,11 @@ public:
     ~AssetModel() = default;
 
     const Asset *asset(Mapping::AssetId assetId) const;
+    uint64_t meshCount() const;
 
 private:
     AssetMap m_assetMap;
+    uint64_t m_totalMeshCount {0};
 };
 
 } // namespace edu::gfx

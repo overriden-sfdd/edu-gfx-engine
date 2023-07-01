@@ -5,9 +5,9 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 
 namespace edu::gfx
 {
@@ -17,23 +17,30 @@ class Mapping
 public:
     enum class AssetId : uint32_t
     {
+        Invalid = 0,
         Backpack,
-        Test,
+        HangingLight
     };
 
-    enum class TextureType : uint32_t
+    enum class TextureId : uint32_t
     {
+        Invalid = 0,
         BackpackDiffuse,
         BackpackSpecular,
+        HangingLightDiffuse,
+        HangingLightSpecular
     };
 
-    using AssetModelMap = std::map<AssetId, std::tuple<std::string, std::string, std::string>>;
-    /** The map of asset model files, where key is the asset id and value is the path to the asset model
+    using AssetModelMap = std::unordered_map<AssetId, std::tuple<std::string, std::string, std::string>>;
+    /**
+     * The map of asset model files, where key is the asset id and value is the path to the asset model
      */
     static const AssetModelMap &AssetModelResource();
 
-    using TextureMap = std::map<TextureType, std::string>;
-    /** The map of texture images, where key is the texture id and value is the path to the texture image
+    using TextureMap = std::unordered_map<AssetId, std::pair<std::string, std::array<TextureId, 2>>>;
+    /**
+     * The map of textures where key is the asset id, value is the pair {path to the texture files, array of texture ids}.
+     * The array has the following order {Diffuse, Specular}
      */
     static const TextureMap &TexResource();
 };

@@ -32,10 +32,15 @@ const Shader *const Asset::shader() const
     return m_shader.get();
 }
 
+Mapping::AssetId Asset::id() const
+{
+    return m_id;
+}
+
 void Asset::loadModel(const std::string &path)
 {
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << '\n';
@@ -108,23 +113,30 @@ Mesh Asset::processMesh(const aiMesh *const mesh, const aiScene *const scene)
 
     // Process material
     if (mesh->mMaterialIndex >= 0) {
-        aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-        std::vector<Texture> diffuseMaps;
-        std::vector<Texture> specularMaps;
-        loadMaterialTextures(textures, material, aiTextureType_DIFFUSE, Mapping::TextureType::BackpackDiffuse);
-        loadMaterialTextures(textures, material, aiTextureType_SPECULAR, Mapping::TextureType::BackpackSpecular);
+        const aiMaterial *const material = scene->mMaterials[mesh->mMaterialIndex];
+
+        const auto assetTexIt = Mapping::TexResource().find(m_id);
+        if (assetTexIt != Mapping::TextureMap().cend()) {
+            const auto &[textureDir, textureIds] = assetTexIt->second;
+            loadMaterialTextures(textures, material, aiTextureType_DIFFUSE, textureDir, textureIds.at(0));
+            loadMaterialTextures(textures, material, aiTextureType_SPECULAR, textureDir, textureIds.at(1));
+        } else {
+            std::cout << "Couldn't find the texture for the asset with id: " << static_cast<uint32_t>(m_id) << '\n';
+        }
     }
 
     return Mesh(std::move(vertices), std::move(indices), std::move(textures));
 }
 
 void Asset::loadMaterialTextures(std::vector<Texture> &out, const aiMaterial *const mat, const aiTextureType type,
-                                 const Mapping::TextureType textureType)
+                                 const std::string &textureDir, const Mapping::TextureId textureId)
 {
     for (size_t i = 0; i < mat->GetTextureCount(type); ++i) {
-        if (m_loadedTextures.find(textureType) == m_loadedTextures.cend()) {
-            auto texture = Texture(/*texName.C_Str(), */ textureType);
-            m_loadedTextures.insert(textureType);
+        if (m_loadedTextures.find(textureId) == m_loadedTextures.cend()) {
+            aiString str;
+            mat->GetTexture(type, i, &str);
+            auto texture = Texture(textureId, textureDir + str.C_Str());
+            m_loadedTextures.insert(textureId);
             out.emplace_back(std::move(texture));
         }
     }

@@ -11,7 +11,11 @@ add_library(${PROJECT_NAME}
         Mesh.h
         Asset.cpp
         Asset.h
-        Mapping.cpp Mapping.h AssetModel.cpp AssetModel.h)
+        Mapping.cpp
+        Mapping.h
+        AssetModel.cpp
+        AssetModel.h
+)
 
 add_library(edu::gfx ALIAS ${PROJECT_NAME})
 

@@ -21,26 +21,27 @@ namespace edu::renderer
 Renderer::Renderer(std::unique_ptr<gfx::AssetModel> assetModel)
     : m_assetModel(std::move(assetModel))
 {
-    const int32_t totalVertCount {79};
+    const uint64_t totalVertCount {m_assetModel->meshCount()};
 
-    //    const int32_t totalVertCount = std::accumulate(m_assetModel->().begin(), m_assetModel->meshes().end(), 0,
-    //                                                   [](int32_t sum, const edu::gfx::Mesh &mesh) {
-    //                                                       return sum + mesh.vertices.size();
-    //                                                   });
-
-    // TODO: why do we need to create exactly "THE NUMBER OF MESHES" vertex arrays to render everything?..
+    // TODO: optimize when the number of assets becomes too much and this becomes too expensive
     m_VAOs.resize(totalVertCount);
     m_VBOs.resize(totalVertCount);
     m_EBOs.resize(totalVertCount);
     // Generate vertex array, vertex buffer, element buffer objects
-    glGenVertexArrays(totalVertCount, m_VAOs.data());
-    glGenBuffers(totalVertCount, m_VBOs.data());
-    glGenBuffers(totalVertCount, m_EBOs.data());
+    glGenVertexArrays(static_cast<int32_t>(totalVertCount), m_VAOs.data());
+    glGenBuffers(static_cast<int32_t>(totalVertCount), m_VBOs.data());
+    glGenBuffers(static_cast<int32_t>(totalVertCount), m_EBOs.data());
 }
 
 void Renderer::setCurrentAsset(gfx::Mapping::AssetId assetId)
 {
     m_currentAsset = m_assetModel->asset(assetId);
+
+    if (!m_currentAsset) {
+        std::cout << "ERROR asset with id " << static_cast<uint32_t>(assetId) << " was not found!" << std::endl;
+        return;
+    }
+
     m_currentAsset->shader()->useShaderProgram();
 
     size_t index {0};
@@ -55,8 +56,7 @@ void Renderer::setCurrentAsset(gfx::Mapping::AssetId assetId)
 
 gfx::Mapping::AssetId Renderer::currentAssetId() const
 {
-    // TODO
-    return gfx::Mapping::AssetId::Backpack;
+    return m_currentAsset ? m_currentAsset->id() : gfx::Mapping::AssetId::Invalid;
 }
 
 void Renderer::onRenderStep()
@@ -220,13 +220,16 @@ void Renderer::bindTextures(const gfx::Mesh &mesh)
         glActiveTexture(GL_TEXTURE0 + index);
         // Retrieve texture number (the N in diffuse_textureN)
 
-        switch (texture.type()) {
-
-        case gfx::Mapping::TextureType::BackpackDiffuse:
+        switch (texture.innerId()) {
+        case gfx::Mapping::TextureId::HangingLightDiffuse:
+        case gfx::Mapping::TextureId::BackpackDiffuse:
             shader->setValue("texture_diffuse1", static_cast<int32_t>(index));
             break;
-        case gfx::Mapping::TextureType::BackpackSpecular:
-            shader->setValue("texture_specular1", static_cast<int32_t>(index));
+        case gfx::Mapping::TextureId::HangingLightSpecular:
+        case gfx::Mapping::TextureId::BackpackSpecular:
+            //            shader->setValue("texture_specular1", static_cast<int32_t>(index));
+            break;
+        case gfx::Mapping::TextureId::Invalid:
             break;
         }
 

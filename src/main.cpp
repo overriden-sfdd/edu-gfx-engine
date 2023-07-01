@@ -201,8 +201,6 @@ int main()
     debugger.spotLights = spotLightPointers;
     debugger.material = fancyBox;
 
-    renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::Backpack);
-
     // Time between current frame and last frame
     float lastFrame {0.f};
     while (!glfwWindowShouldClose(window)) {
@@ -227,6 +225,8 @@ int main()
         // Poll keyboard
         pollKeyboard(&window);
 
+        renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::Backpack);
+
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3 {0.f, 0.f, 0.f});
         renderer.setModelMatrix(model);
@@ -240,6 +240,14 @@ int main()
 
         renderer.onRenderStep();
         renderer.draw();
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3 {0.f, 12.f, 0.f});
+        renderer.setModelMatrix(model);
+        renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::HangingLight);
+        renderer.onRenderStep();
+        renderer.draw();
+
         debugger.render();
 
         // Buffers and general utility

@@ -37,7 +37,7 @@ private:
     int32_t findUniformLocation(const std::string &name) const;
 
     // The program ID
-    uint32_t m_shaderProgramId {0};
+    uint32_t m_shaderProgramId;
     std::string m_vertexSource;
     std::string m_fragmentSource;
 };

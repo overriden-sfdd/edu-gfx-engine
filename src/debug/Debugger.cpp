@@ -126,8 +126,6 @@ void Debugger::setupDebugWindow()
 
     // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
     {
-        static int counter = 0;
-
         ImGui::Begin("Object editor");
 
         ImGui::Text("Lighting section.");
