@@ -27,7 +27,7 @@ const std::vector<Mesh> &Asset::meshes() const
     return m_meshes;
 }
 
-const Shader *const Asset::shader() const
+const Shader *Asset::shader() const
 {
     return m_shader.get();
 }
@@ -111,18 +111,17 @@ Mesh Asset::processMesh(const aiMesh *const mesh, const aiScene *const scene)
         }
     }
 
+    // TODO: check that the material exists
     // Process material
-    if (mesh->mMaterialIndex >= 0) {
-        const aiMaterial *const material = scene->mMaterials[mesh->mMaterialIndex];
+    const aiMaterial *const material = scene->mMaterials[mesh->mMaterialIndex];
 
-        const auto assetTexIt = Mapping::TexResource().find(m_id);
-        if (assetTexIt != Mapping::TextureMap().cend()) {
-            const auto &[textureDir, textureIds] = assetTexIt->second;
-            loadMaterialTextures(textures, material, aiTextureType_DIFFUSE, textureDir, textureIds.at(0));
-            loadMaterialTextures(textures, material, aiTextureType_SPECULAR, textureDir, textureIds.at(1));
-        } else {
-            std::cout << "Couldn't find the texture for the asset with id: " << static_cast<uint32_t>(m_id) << '\n';
-        }
+    const auto assetTexIt = Mapping::TexResource().find(m_id);
+    if (assetTexIt != Mapping::TextureMap().cend()) {
+        const auto &[textureDir, textureIds] = assetTexIt->second;
+        loadMaterialTextures(textures, material, aiTextureType_DIFFUSE, textureDir, textureIds.at(0));
+        loadMaterialTextures(textures, material, aiTextureType_SPECULAR, textureDir, textureIds.at(1));
+    } else {
+        std::cout << "Couldn't find the texture for the asset with id: " << static_cast<uint32_t>(m_id) << '\n';
     }
 
     return Mesh(std::move(vertices), std::move(indices), std::move(textures));

@@ -23,6 +23,8 @@ public:
     ~AssetModel() = default;
 
     const Asset *asset(Mapping::AssetId assetId) const;
+    Asset *asset(Mapping::AssetId assetId);
+
     uint64_t meshCount() const;
 
 private:

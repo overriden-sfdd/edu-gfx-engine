@@ -14,6 +14,7 @@
 #include "renderer/Renderer.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/matrix.hpp>
 
 #include <iostream>
 
@@ -225,10 +226,10 @@ int main()
         // Poll keyboard
         pollKeyboard(&window);
 
-        renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::Backpack);
+        auto backpack = renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::Backpack);
+        (void)backpack;
 
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3 {0.f, 0.f, 0.f});
         renderer.setModelMatrix(model);
 
         // Calculate the coordinate system matrices and send to the shaders
@@ -241,10 +242,11 @@ int main()
         renderer.onRenderStep();
         renderer.draw();
 
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3 {0.f, 12.f, 0.f});
-        renderer.setModelMatrix(model);
-        renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::HangingLight);
+        auto hangingLight = renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::HangingLight);
+        hangingLight->enqueue();
+
+        // TODO: store a map of the asset positions?..
+        renderer.setModelMatrix(glm::translate(model, {0.f, 12.f, 0.f}));
         renderer.onRenderStep();
         renderer.draw();
 

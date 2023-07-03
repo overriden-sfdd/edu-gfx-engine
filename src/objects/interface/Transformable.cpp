@@ -44,7 +44,7 @@ void Transformable::translate(const TranslationType &pos)
 
 void Transformable::rotate(const RotationType &rot)
 {
-    setRotation(RotationType {m_rotation.first * rot.first, m_rotation.second + rot.second});
+    setRotation(RotationType {rot.first, m_rotation.second + rot.second});
 }
 
 void Transformable::scale(const ScaleType &scale)

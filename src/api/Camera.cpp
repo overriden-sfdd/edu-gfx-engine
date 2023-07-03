@@ -31,8 +31,8 @@ Camera::Camera(const float fov)
 
 Camera::Camera(const glm::vec3 &worldUp, const glm::vec3 &position, const float fov)
     : m_fov {fov}
-    , m_worldUp(worldUp)
     , m_position(position)
+    , m_worldUp(worldUp)
 {
     updateCameraVectors();
 }

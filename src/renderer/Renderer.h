@@ -28,7 +28,7 @@ public:
     explicit Renderer(std::unique_ptr<gfx::AssetModel> assetModel);
     ~Renderer() = default;
 
-    void setCurrentAsset(gfx::Mapping::AssetId assetId);
+    gfx::Asset *setCurrentAsset(gfx::Mapping::AssetId assetId);
     gfx::Mapping::AssetId currentAssetId() const;
     void onRenderStep();
     void draw();
@@ -54,7 +54,7 @@ private:
     std::vector<uint32_t> m_EBOs;
 
     std::unique_ptr<gfx::AssetModel> m_assetModel;
-    const gfx::Asset *m_currentAsset {nullptr};
+    gfx::Asset *m_currentAsset {nullptr};
 
     // MVP matrices
     glm::mat4 m_modelMatrix;

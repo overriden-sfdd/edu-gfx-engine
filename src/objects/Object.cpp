@@ -4,6 +4,8 @@
 
 #include "Object.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace edu::objects
 {
 
@@ -34,20 +36,37 @@ void Object::setColor(const ColorType &color)
 
 void Object::translate(const TranslationType &pos)
 {
-    setTranslation(pos);
+    interface::Transformable::translate(pos);
+    m_compositionStack.push([this](glm::mat4 &transform) {
+        transform = glm::translate(transform, m_translation);
+    });
     enqueue();
 }
 
 void Object::rotate(const RotationType &rot)
 {
-    setRotation(rot);
+    interface::Transformable::rotate(rot);
+    m_compositionStack.push([this](glm::mat4 &transform) {
+        transform = glm::rotate(transform, m_rotation.second, m_rotation.first);
+    });
     enqueue();
 }
 
 void Object::scale(const ScaleType &scale)
 {
-    setScale(scale);
+    interface::Transformable::scale(scale);
+    m_compositionStack.push([this](glm::mat4 &transform) {
+        transform = glm::scale(transform, m_scale);
+    });
     enqueue();
+}
+
+void Object::composeTransformation(TransformationType &transform)
+{
+    for (; !m_compositionStack.empty();) {
+        m_compositionStack.top()(transform);
+        m_compositionStack.pop();
+    }
 }
 
 } // namespace edu::objects

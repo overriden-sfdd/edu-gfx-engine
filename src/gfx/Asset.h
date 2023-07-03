@@ -27,7 +27,7 @@ public:
     ~Asset() override = default;
 
     const std::vector<Mesh> &meshes() const;
-    const Shader *const shader() const;
+    const Shader *shader() const;
     Mapping::AssetId id() const;
 
 private:

@@ -1,3 +1,9 @@
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-pedantic -Wall -Werror -Wextra -Wno-error=deprecated-declarations -Wno-uninitialized -Wno-noexcept-type -Werror=strict-aliasing -Wno-return-type-c-linkage)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-pedantic -Wall -Werror -Wextra -Wno-error=deprecated-declarations -Wno-maybe-uninitialized -Wno-noexcept-type -Werror=strict-aliasing)
+endif()
+
 add_subdirectory(api)
 add_subdirectory(gfx)
 add_subdirectory(objects)

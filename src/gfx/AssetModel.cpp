@@ -26,6 +26,12 @@ const Asset *AssetModel::asset(Mapping::AssetId assetId) const
     return it == m_assetMap.cend() ? nullptr : it->second.get();
 }
 
+Asset *AssetModel::asset(Mapping::AssetId assetId)
+{
+    const auto it = m_assetMap.find(assetId);
+    return it == m_assetMap.cend() ? nullptr : it->second.get();
+}
+
 uint64_t AssetModel::meshCount() const
 {
     return m_totalMeshCount;

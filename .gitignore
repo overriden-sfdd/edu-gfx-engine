@@ -5,6 +5,7 @@
 *.slo
 *.lo
 *.o
+# also ignores large assets
 *.obj
 
 # Precompiled Headers
@@ -67,6 +68,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
-# Local assets
-data/
-!data/shaders/
+# Assets
+**/data/**/*.jpg
+**/data/**/*.png
+**/data/**/*.jpeg

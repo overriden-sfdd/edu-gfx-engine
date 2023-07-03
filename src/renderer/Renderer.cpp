@@ -33,13 +33,13 @@ Renderer::Renderer(std::unique_ptr<gfx::AssetModel> assetModel)
     glGenBuffers(static_cast<int32_t>(totalVertCount), m_EBOs.data());
 }
 
-void Renderer::setCurrentAsset(gfx::Mapping::AssetId assetId)
+gfx::Asset *Renderer::setCurrentAsset(const gfx::Mapping::AssetId assetId)
 {
     m_currentAsset = m_assetModel->asset(assetId);
 
     if (!m_currentAsset) {
         std::cout << "ERROR asset with id " << static_cast<uint32_t>(assetId) << " was not found!" << std::endl;
-        return;
+        return nullptr;
     }
 
     m_currentAsset->shader()->useShaderProgram();
@@ -52,6 +52,8 @@ void Renderer::setCurrentAsset(gfx::Mapping::AssetId assetId)
         setupMesh(mesh);
         ++index;
     }
+
+    return m_currentAsset;
 }
 
 gfx::Mapping::AssetId Renderer::currentAssetId() const
@@ -69,21 +71,19 @@ void Renderer::onRenderStep()
     const auto *const currentShader = m_currentAsset->shader();
     currentShader->useShaderProgram();
 
-    currentShader->setValue("u_Model", m_modelMatrix);
     currentShader->setValue("u_View", m_viewMatrix);
     currentShader->setValue("u_Projection", m_perspectiveMatrix);
 
     // TODO: What about the order? This is not correct. Make a composition instead  of this and additionally multiply
-    // MVP outside of the shaders
+    if (!m_currentAsset->isQueued()) {
+        currentShader->setValue("u_Model", m_modelMatrix);
+        return;
+    }
 
-    //    if (m_currentAsset->isQueued()) {
-    //        // Perform transformations
-    //        glm::mat4 trans(1.0f);
-    //        const auto [axis, angle] = m_currentAsset->rotation();
-    //        glm::rotate(trans, glm::radians(angle), glm::normalize(axis));
-    //        glm::translate(trans, m_currentAsset->translation());
-    //        glm::scale(trans, m_currentAsset->scaling());
-    //    }
+    // Perform transformations
+    glm::mat4 transformation(1.0f);
+    m_currentAsset->composeTransformation(transformation);
+    currentShader->setValue("u_Model", transformation * m_modelMatrix);
 }
 
 void Renderer::draw()
@@ -212,7 +212,7 @@ void Renderer::bindTextures(const gfx::Mesh &mesh)
         return;
     }
 
-    auto *const shader = m_currentAsset->shader();
+    const auto *const shader = m_currentAsset->shader();
 
     size_t index {0};
     for (const auto &texture : mesh.textures) {
