@@ -33,6 +33,11 @@ auto LightSource::specular() const -> const LightProperetyType &
     return m_specular;
 }
 
+auto LightSource::color() const -> const ColorType &
+{
+    return m_color;
+}
+
 auto LightSource::position() const -> const PositionType &
 {
     return m_position;

@@ -2,12 +2,14 @@ project(objects)
 
 add_library(${PROJECT_NAME}
     SHARED
-        IObject.h
+        Asset.h
+        Asset.cpp
         Object.h
         Object.cpp
         interface/ITransformable.h
         interface/Transformable.cpp
         interface/Transformable.h
+        interface/IVisible.h
         light/ILightSource.h
         light/IPointLight.h
         light/DirectLight.h
@@ -20,6 +22,11 @@ add_library(${PROJECT_NAME}
 )
 
 add_library(edu::objects ALIAS ${PROJECT_NAME})
+
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+        assimp
+)
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC

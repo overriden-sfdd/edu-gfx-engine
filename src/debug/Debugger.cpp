@@ -39,9 +39,16 @@ void setupLightControls(objects::light::LightSource *const light, size_t index)
 void setupPositionControls(objects::light::LightSource *const light, size_t index)
 {
     auto position = light->position();
-    ImGui::SliderFloat3(repeatedControlName("Position", index).c_str(), glm::value_ptr(position), FromToMovePair.first,
-                        FromToMovePair.second);
-    light->setPosition(position);
+    std::cout << "light position before:" << light->position().x << ',' << light->position().y << ','
+              << light->position().z << '\n';
+    ImGui::SliderFloat3(repeatedControlName("Position", index).c_str(), glm::value_ptr(position), -100.f, 100.f);
+    std::cout << "light position after:" << light->position().x << ',' << light->position().y << ','
+              << light->position().z << '\n';
+    std::cout << "light position copy after:" << position.x << ',' << position.y << ',' << position.z << '\n';
+    //    light->setPosition(position);
+    light->translate(position - light->position());
+    std::cout << "light position in the end:" << light->position().x << ',' << light->position().y << ','
+              << light->position().z << '\n';
 }
 
 void setupDirectionControls(objects::light::DirectLight *const light, size_t index)
@@ -135,7 +142,7 @@ void Debugger::setupDebugWindow()
             size_t index {0};
 
             if (ImGui::TreeNode("Direct light")) {
-                for (const auto light : directLights) {
+                for (const auto &light : directLights) {
                     auto *const lightPtr = light.get();
 
                     setupLightControls(lightPtr, index);
@@ -147,7 +154,7 @@ void Debugger::setupDebugWindow()
                 ImGui::TreePop();
             }
             if (ImGui::TreeNode("Point light")) {
-                for (const auto light : pointLights) {
+                for (const auto &light : pointLights) {
                     auto *const lightPtr = light.get();
 
                     setupLightControls(lightPtr, index);
@@ -161,7 +168,7 @@ void Debugger::setupDebugWindow()
             }
 
             if (ImGui::TreeNode("Spot light")) {
-                for (const auto light : spotLights) {
+                for (const auto &light : spotLights) {
                     auto *const lightPtr = light.get();
 
                     setupLightControls(lightPtr, index);
@@ -183,7 +190,7 @@ void Debugger::setupDebugWindow()
             ImGui::SeparatorText("No available material.");
         }
 
-        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / m_io.Framerate, m_io.Framerate);
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / (m_io.Framerate + 1e-6), m_io.Framerate);
         ImGui::End();
     }
 }

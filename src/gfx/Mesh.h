@@ -34,7 +34,7 @@ public:
         glm::vec2 texCoords;
     };
 
-    Mesh(std::vector<VertexData> &&vertices, std::vector<uint32_t> &&indices, std::vector<Texture> &&textures);
+    Mesh(std::vector<VertexData> &&vertices_, std::vector<uint32_t> &&indices_, std::vector<Texture> &&textures_);
 
     VertexInfo vertexInfo;
     std::vector<VertexData> vertices;

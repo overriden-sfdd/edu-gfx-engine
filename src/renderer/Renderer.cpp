@@ -4,13 +4,12 @@
 
 #include "Renderer.h"
 
-#include <gfx/Asset.h>
+#include "objects/Asset.h"
 #include <gfx/AssetModel.h>
 #include <gfx/Shader.h>
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
 
 #include <iostream>
 #include <numeric>
@@ -33,70 +32,64 @@ Renderer::Renderer(std::unique_ptr<gfx::AssetModel> assetModel)
     glGenBuffers(static_cast<int32_t>(totalVertCount), m_EBOs.data());
 }
 
-gfx::Asset *Renderer::setCurrentAsset(const gfx::Mapping::AssetId assetId)
+void Renderer::setCurrentObject(objects::Object *object)
 {
-    m_currentAsset = m_assetModel->asset(assetId);
+    m_currentObject = object;
 
-    if (!m_currentAsset) {
-        std::cout << "ERROR asset with id " << static_cast<uint32_t>(assetId) << " was not found!" << std::endl;
-        return nullptr;
+    if (!m_currentObject) {
+        std::cout << "ERROR object with asset id " << static_cast<uint32_t>(m_currentObject->asset()->id())
+                  << " was not found!" << std::endl;
+        return;
     }
 
-    m_currentAsset->shader()->useShaderProgram();
+    m_currentObject->asset()->shader()->useShaderProgram();
 
     size_t index {0};
-    for (const auto &mesh : m_currentAsset->meshes()) {
+    for (const auto &mesh : m_currentObject->asset()->meshes()) {
         bindVertexArray(index);
         bindVertexBuffer(index);
         bindElementArray(index);
         setupMesh(mesh);
         ++index;
     }
-
-    return m_currentAsset;
-}
-
-gfx::Mapping::AssetId Renderer::currentAssetId() const
-{
-    return m_currentAsset ? m_currentAsset->id() : gfx::Mapping::AssetId::Invalid;
 }
 
 void Renderer::onRenderStep()
 {
-    if (!m_currentAsset) {
+    if (!m_currentObject) {
         std::cout << "Current asset is null on render step!\n";
         return;
     }
 
-    const auto *const currentShader = m_currentAsset->shader();
+    const auto *const currentShader = m_currentObject->asset()->shader();
     currentShader->useShaderProgram();
 
     currentShader->setValue("u_View", m_viewMatrix);
     currentShader->setValue("u_Projection", m_perspectiveMatrix);
 
     // TODO: What about the order? This is not correct. Make a composition instead  of this and additionally multiply
-    if (!m_currentAsset->isQueued()) {
+    if (!m_currentObject->isQueued()) {
         currentShader->setValue("u_Model", m_modelMatrix);
         return;
     }
 
     // Perform transformations
     glm::mat4 transformation(1.0f);
-    m_currentAsset->composeTransformation(transformation);
+    m_currentObject->composeTransformation(transformation);
     currentShader->setValue("u_Model", transformation * m_modelMatrix);
 }
 
 void Renderer::draw()
 {
-    if (!m_currentAsset) {
+    if (!m_currentObject) {
         std::cout << "Current asset is null. Nothing is drawn!\n";
         return;
     }
 
-    m_currentAsset->shader()->useShaderProgram();
+    m_currentObject->asset()->shader()->useShaderProgram();
 
     size_t index {0};
-    for (const auto &mesh : m_currentAsset->meshes()) {
+    for (const auto &mesh : m_currentObject->asset()->meshes()) {
         bindVertexArray(index);
         bindTextures(mesh);
         glDrawElements(GL_TRIANGLES, static_cast<int32_t>(mesh.vertIndices.size()), GL_UNSIGNED_INT, nullptr);
@@ -207,12 +200,12 @@ void Renderer::bindElementArray(const size_t index)
 
 void Renderer::bindTextures(const gfx::Mesh &mesh)
 {
-    if (!m_currentAsset) {
+    if (!m_currentObject) {
         std::cout << "Current asset is null. Can't bind the textures!\n";
         return;
     }
 
-    const auto *const shader = m_currentAsset->shader();
+    const auto *const shader = m_currentObject->asset()->shader();
 
     size_t index {0};
     for (const auto &texture : mesh.textures) {
@@ -223,11 +216,11 @@ void Renderer::bindTextures(const gfx::Mesh &mesh)
         switch (texture.innerId()) {
         case gfx::Mapping::TextureId::HangingLightDiffuse:
         case gfx::Mapping::TextureId::BackpackDiffuse:
-            shader->setValue("texture_diffuse1", static_cast<int32_t>(index));
+            shader->setValue("u_Material.diffuse", static_cast<int32_t>(index));
             break;
         case gfx::Mapping::TextureId::HangingLightSpecular:
         case gfx::Mapping::TextureId::BackpackSpecular:
-            //            shader->setValue("texture_specular1", static_cast<int32_t>(index));
+            shader->setValue("u_Material.specular", static_cast<int32_t>(index));
             break;
         case gfx::Mapping::TextureId::Invalid:
             break;

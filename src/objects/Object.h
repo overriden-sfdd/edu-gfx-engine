@@ -4,40 +4,43 @@
 
 #pragma once
 
-#include "IObject.h"
 #include "interface/Transformable.h"
 
 #include <glm/mat4x4.hpp>
 
 #include <functional>
+#include <memory>
 #include <stack>
 
 namespace edu::objects
 {
 
-class Object : public virtual IObject, public interface::Transformable
+class Asset;
+
+class Object : public interface::Transformable
 {
 public:
     using TransformationType = glm::mat4;
 
+    ~Object() override = default;
+
     void enqueue();
     void dequeue();
-    bool isQueued() const;
-
-    const ColorType &color() const override;
-    void setColor(const ColorType &color) override;
+    [[nodiscard]] bool isQueued() const;
 
     void translate(const TranslationType &pos) override;
     void rotate(const RotationType &rot) override;
-    void scale(const ScaleType &scale) override;
+    void scale(const ScaleType &scaling) override;
 
     // TODO: is this a good approach? Is this a good place?
     void composeTransformation(TransformationType &transform);
+    [[nodiscard]] const Asset *asset() const;
+    void setAsset(std::shared_ptr<Asset> asset);
 
 protected:
-    ColorType m_color {};
     // If the object is queued, the renderer will update it
     bool m_queued {false};
+    std::shared_ptr<Asset> m_asset;
 
 private:
     std::stack<std::function<void(glm::mat4 &)>> m_compositionStack;

@@ -9,8 +9,6 @@ add_library(${PROJECT_NAME}
         Material.h
         Mesh.cpp
         Mesh.h
-        Asset.cpp
-        Asset.h
         Mapping.cpp
         Mapping.h
         AssetModel.cpp
@@ -23,6 +21,7 @@ target_link_libraries(${PROJECT_NAME}
     PUBLIC
         stbimage
         assimp
+        edu::objects
 )
 
 target_include_directories(${PROJECT_NAME}

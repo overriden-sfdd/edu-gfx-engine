@@ -9,21 +9,24 @@
 #include <memory>
 #include <unordered_map>
 
+namespace edu::objects
+{
+class Asset;
+} // namespace edu::objects
+
 namespace edu::gfx
 {
-
-class Asset;
 
 class AssetModel
 {
 public:
-    using AssetMap = std::unordered_map<Mapping::AssetId, std::unique_ptr<Asset>>;
+    using AssetMap = std::unordered_map<Mapping::AssetId, std::unique_ptr<objects::Asset>>;
 
     AssetModel();
     ~AssetModel() = default;
 
-    const Asset *asset(Mapping::AssetId assetId) const;
-    Asset *asset(Mapping::AssetId assetId);
+    const objects::Asset *asset(Mapping::AssetId assetId) const;
+    objects::Asset *asset(Mapping::AssetId assetId);
 
     uint64_t meshCount() const;
 

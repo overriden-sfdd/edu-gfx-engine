@@ -3,36 +3,36 @@
 //
 
 #include "Asset.h"
-#include "Shader.h"
-#include "Texture.h"
+
+#include <gfx/Shader.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
 #include <iostream>
 
-namespace edu::gfx
+namespace edu::objects
 {
 
-Asset::Asset(const Mapping::AssetId id, const std::string &path, std::unique_ptr<Shader> shader)
+Asset::Asset(const gfx::Mapping::AssetId id, const std::string &path, const std::shared_ptr<gfx::Shader> shader)
     : m_id(id)
-    , m_shader(std::move(shader))
+    , m_shader(shader)
 {
     m_shader->useShaderProgram();
     loadModel(path);
 }
 
-const std::vector<Mesh> &Asset::meshes() const
+const std::vector<gfx::Mesh> &Asset::meshes() const
 {
     return m_meshes;
 }
 
-const Shader *Asset::shader() const
+const gfx::Shader *Asset::shader() const
 {
     return m_shader.get();
 }
 
-Mapping::AssetId Asset::id() const
+gfx::Mapping::AssetId Asset::id() const
 {
     return m_id;
 }
@@ -67,11 +67,11 @@ void Asset::processNode(const aiNode *const node, const aiScene *const scene)
     }
 }
 
-Mesh Asset::processMesh(const aiMesh *const mesh, const aiScene *const scene)
+gfx::Mesh Asset::processMesh(const aiMesh *const mesh, const aiScene *const scene)
 {
-    std::vector<Mesh::VertexData> vertices;
+    std::vector<gfx::Mesh::VertexData> vertices;
     std::vector<uint32_t> indices;
-    std::vector<Texture> textures;
+    std::vector<gfx::Texture> textures;
 
     // We only care about the first texture coordinates for a vertex
     const auto *const rawTex = mesh->mTextureCoords[0];
@@ -95,7 +95,7 @@ Mesh Asset::processMesh(const aiMesh *const mesh, const aiScene *const scene)
             texCoords[1] = rawTex[i].y;
         }
 
-        vertices.emplace_back(Mesh::VertexData {
+        vertices.emplace_back(gfx::Mesh::VertexData {
             .position = {vertPos.x, vertPos.y, vertPos.z},
             .normal = normal,
             .texCoords = texCoords,
@@ -115,8 +115,8 @@ Mesh Asset::processMesh(const aiMesh *const mesh, const aiScene *const scene)
     // Process material
     const aiMaterial *const material = scene->mMaterials[mesh->mMaterialIndex];
 
-    const auto assetTexIt = Mapping::TexResource().find(m_id);
-    if (assetTexIt != Mapping::TextureMap().cend()) {
+    const auto assetTexIt = gfx::Mapping::TexResource().find(m_id);
+    if (assetTexIt != gfx::Mapping::TextureMap().cend()) {
         const auto &[textureDir, textureIds] = assetTexIt->second;
         loadMaterialTextures(textures, material, aiTextureType_DIFFUSE, textureDir, textureIds.at(0));
         loadMaterialTextures(textures, material, aiTextureType_SPECULAR, textureDir, textureIds.at(1));
@@ -124,21 +124,21 @@ Mesh Asset::processMesh(const aiMesh *const mesh, const aiScene *const scene)
         std::cout << "Couldn't find the texture for the asset with id: " << static_cast<uint32_t>(m_id) << '\n';
     }
 
-    return Mesh(std::move(vertices), std::move(indices), std::move(textures));
+    return {std::move(vertices), std::move(indices), std::move(textures)};
 }
 
-void Asset::loadMaterialTextures(std::vector<Texture> &out, const aiMaterial *const mat, const aiTextureType type,
-                                 const std::string &textureDir, const Mapping::TextureId textureId)
+void Asset::loadMaterialTextures(std::vector<gfx::Texture> &out, const aiMaterial *const mat, const aiTextureType type,
+                                 const std::string &textureDir, const gfx::Mapping::TextureId textureId)
 {
     for (size_t i = 0; i < mat->GetTextureCount(type); ++i) {
         if (m_loadedTextures.find(textureId) == m_loadedTextures.cend()) {
             aiString str;
             mat->GetTexture(type, i, &str);
-            auto texture = Texture(textureId, textureDir + str.C_Str());
+            auto texture = gfx::Texture(textureId, textureDir + str.C_Str());
             m_loadedTextures.insert(textureId);
             out.emplace_back(std::move(texture));
         }
     }
 }
 
-} // namespace edu::gfx
+} // namespace edu::objects

@@ -3,6 +3,7 @@
 //
 
 #include "Object.h"
+#include "Asset.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -24,20 +25,10 @@ bool Object::isQueued() const
     return m_queued;
 }
 
-auto Object::color() const -> const ColorType &
-{
-    return m_color;
-}
-
-void Object::setColor(const ColorType &color)
-{
-    m_color = color;
-}
-
 void Object::translate(const TranslationType &pos)
 {
     interface::Transformable::translate(pos);
-    m_compositionStack.push([this](glm::mat4 &transform) {
+    m_compositionStack.emplace([this](glm::mat4 &transform) {
         transform = glm::translate(transform, m_translation);
     });
     enqueue();
@@ -46,16 +37,16 @@ void Object::translate(const TranslationType &pos)
 void Object::rotate(const RotationType &rot)
 {
     interface::Transformable::rotate(rot);
-    m_compositionStack.push([this](glm::mat4 &transform) {
+    m_compositionStack.emplace([this](glm::mat4 &transform) {
         transform = glm::rotate(transform, m_rotation.second, m_rotation.first);
     });
     enqueue();
 }
 
-void Object::scale(const ScaleType &scale)
+void Object::scale(const ScaleType &scaling)
 {
-    interface::Transformable::scale(scale);
-    m_compositionStack.push([this](glm::mat4 &transform) {
+    interface::Transformable::scale(scaling);
+    m_compositionStack.emplace([this](glm::mat4 &transform) {
         transform = glm::scale(transform, m_scale);
     });
     enqueue();
@@ -67,6 +58,16 @@ void Object::composeTransformation(TransformationType &transform)
         m_compositionStack.top()(transform);
         m_compositionStack.pop();
     }
+}
+
+const Asset *Object::asset() const
+{
+    return m_asset.get();
+}
+
+void Object::setAsset(const std::shared_ptr<Asset> asset)
+{
+    m_asset = asset;
 }
 
 } // namespace edu::objects

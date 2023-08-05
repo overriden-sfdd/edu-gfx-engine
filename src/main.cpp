@@ -4,10 +4,10 @@
 #include "api/Camera.h"
 #include "api/Mouse.h"
 #include "debug/Debugger.h"
-#include "gfx/Asset.h"
 #include "gfx/AssetModel.h"
 #include "gfx/Material.h"
 #include "gfx/Shader.h"
+#include "objects/Asset.h"
 #include "objects/light/DirectLight.h"
 #include "objects/light/PointLight.h"
 #include "objects/light/SpotLight.h"
@@ -23,13 +23,6 @@ namespace
 
 constexpr int32_t WindowWidth {800};
 constexpr int32_t WindowHeight {600};
-
-const std::vector<glm::vec3> PointLightPositions {
-    glm::vec3 {0.7f, 0.2f, 2.0f},
-    glm::vec3 {2.3f, -3.3f, -4.0f},
-    glm::vec3 {-4.0f, 2.0f, -12.0f},
-    glm::vec3 {0.0f, 0.0f, -3.0f},
-};
 
 // Global mouse init
 edu::api::Mouse mouse {};
@@ -184,10 +177,8 @@ int main()
             .quadratic = 0.04f,
         };
 
-        for (auto position : PointLightPositions) {
-            pointLightPointers.push_back(
-                std::make_shared<PointLight>(color, position, lightMultipliers, attenuationConstants));
-        }
+        pointLightPointers.push_back(
+            std::make_shared<PointLight>(color, worldPosition, lightMultipliers, attenuationConstants));
 
         const SpotLight::IntensityConstants intensityConstants {
             .innerCutoffCos = std::cos(glm::radians(12.5f)),
@@ -202,6 +193,85 @@ int main()
     debugger.spotLights = spotLightPointers;
     debugger.material = fancyBox;
 
+    edu::objects::Object backpack;
+    backpack.setAsset(
+        std::shared_ptr<edu::objects::Asset>(renderer.m_assetModel->asset(edu::gfx::Mapping::AssetId::Backpack)));
+
+    auto &hangingLight = *pointLightPointers.at(0);
+    hangingLight.setAsset(
+        std::shared_ptr<edu::objects::Asset>(renderer.m_assetModel->asset(edu::gfx::Mapping::AssetId::HangingLight)));
+
+    const auto setDirectLight = [&directLightPointers](const int32_t index, const edu::objects::Object &obj) {
+        const auto prefix = "u_DirectLight[" + std::to_string(index) + "]";
+        const auto directLight = directLightPointers[index];
+        if (!directLight) {
+            std::cout << "[ERROR] Direct light shared pointer is null at index: " << index << '\n';
+            return;
+        }
+
+        const auto *const objectShader = obj.asset()->shader();
+        if (!objectShader) {
+            std::cout << "[ERROR] Direct light shader is null at index: " << index << '\n';
+            return;
+        }
+
+        objectShader->setValue(prefix + ".props.position", directLight->position());
+        objectShader->setValue(prefix + ".props.ambient", directLight->ambient());
+        objectShader->setValue(prefix + ".props.diffuse", directLight->diffuse());
+        objectShader->setValue(prefix + ".props.specular", directLight->specular());
+        objectShader->setValue(prefix + ".direction", directLight->direction());
+    };
+
+    const auto setPointLight = [&pointLightPointers](const int32_t index, const edu::objects::Object &obj) {
+        const auto prefix = "u_PointLight[" + std::to_string(index) + "]";
+        const auto pointLight = pointLightPointers[index];
+        if (!pointLight) {
+            std::cout << "[ERROR] Point light shared pointer is null at index: " << index << '\n';
+            return;
+        }
+
+        const auto *const objectShader = obj.asset()->shader();
+        if (!objectShader) {
+            std::cout << "[ERROR] Point light shader is null at index: " << index << '\n';
+            return;
+        }
+
+        const auto &attenuationConstants = pointLight->attenuation();
+        objectShader->setValue(prefix + ".props.position", pointLight->position());
+        objectShader->setValue(prefix + ".props.ambient", pointLight->ambient());
+        objectShader->setValue(prefix + ".props.diffuse", pointLight->diffuse());
+        objectShader->setValue(prefix + ".props.specular", pointLight->specular());
+        objectShader->setValue(prefix + ".constant", attenuationConstants.constant);
+        objectShader->setValue(prefix + ".linear", attenuationConstants.linear);
+        objectShader->setValue(prefix + ".quadratic", attenuationConstants.quadratic);
+    };
+
+    //    const auto setSpotLight = [&spotLightPointers, &objectShader](const int32_t index) {
+    //        const auto prefix = "u_Spotlight[" + std::to_string(index) + "]";
+    //        const auto spotLight = spotLightPointers[index];
+    //        if (!spotLight) {
+    //            std::cout << "[ERROR] Spot light shared pointer is null at index: " << index << '\n';
+    //            return;
+    //        }
+    //
+    //        // Camera is globally available here
+    //        spotLight->setDirection(camera.cameraFront());
+    //        spotLight->setPosition(camera.cameraWorldPos());
+    //
+    //        const auto &attenuationConstants = spotLight->attenuation();
+    //        const auto &intensityConstants = spotLight->intensity();
+    //        objectShader.setValue(prefix + ".pointLight.props.position", spotLight->position());
+    //        objectShader.setValue(prefix + ".pointLight.props.ambient", spotLight->ambient());
+    //        objectShader.setValue(prefix + ".pointLight.props.diffuse", spotLight->diffuse());
+    //        objectShader.setValue(prefix + ".pointLight.props.specular", spotLight->specular());
+    //        objectShader.setValue(prefix + ".pointLight.constant", attenuationConstants.constant);
+    //        objectShader.setValue(prefix + ".pointLight.linear", attenuationConstants.linear);
+    //        objectShader.setValue(prefix + ".pointLight.quadratic", attenuationConstants.quadratic);
+    //        objectShader.setValue(prefix + ".innerCutoffCos", intensityConstants.innerCutoffCos);
+    //        objectShader.setValue(prefix + ".outerCutoffCos", intensityConstants.outerCutoffCos);
+    //        objectShader.setValue(prefix + ".direction", spotLight->direction());
+    //    };
+
     // Time between current frame and last frame
     float lastFrame {0.f};
     while (!glfwWindowShouldClose(window)) {
@@ -215,7 +285,7 @@ int main()
         }
         MouseAvailable = !debugger.isWindowFocused();
 
-        const float currentFrame = static_cast<float>(glfwGetTime());
+        const auto currentFrame = static_cast<float>(glfwGetTime());
         DeltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
@@ -226,8 +296,15 @@ int main()
         // Poll keyboard
         pollKeyboard(&window);
 
-        auto backpack = renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::Backpack);
-        (void)backpack;
+        renderer.setCurrentObject(&backpack);
+
+        setDirectLight(0, backpack);
+        setPointLight(0, backpack);
+        const auto *objectShader = backpack.asset()->shader();
+        objectShader->setValue("u_ViewerPos", camera.cameraWorldPos());
+        // TODO: fancy box doesn't correspond to the backpack object
+        objectShader->setValue("u_Material.specular", fancyBox->specular);
+        objectShader->setValue("u_Material.shininess", fancyBox->shininess);
 
         glm::mat4 model = glm::mat4(1.0f);
         renderer.setModelMatrix(model);
@@ -242,8 +319,16 @@ int main()
         renderer.onRenderStep();
         renderer.draw();
 
-        auto hangingLight = renderer.setCurrentAsset(edu::gfx::Mapping::AssetId::HangingLight);
-        hangingLight->enqueue();
+        renderer.setCurrentObject(&hangingLight);
+        setDirectLight(0, hangingLight);
+        // Don't set a point light for this object
+        //        setPointLight(0, hangingLight);
+        objectShader = hangingLight.asset()->shader();
+        objectShader->setValue("u_ViewerPos", camera.cameraWorldPos());
+        // TODO: fancy box doesn't correspond to the hanging light object
+        objectShader->setValue("u_Material.specular", fancyBox->specular);
+        objectShader->setValue("u_Material.shininess", fancyBox->shininess);
+        hangingLight.enqueue();
 
         // TODO: store a map of the asset positions?..
         renderer.setModelMatrix(glm::translate(model, {0.f, 12.f, 0.f}));

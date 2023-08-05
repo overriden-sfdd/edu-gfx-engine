@@ -43,7 +43,7 @@ struct Spotlight
     PointLight pointLight;
 };
 
-#define POINT_LIGHT_COUNT 4
+#define POINT_LIGHT_COUNT 1
 #define SPOT_LIGHT_COUNT 1
 #define DIRECT_LIGHT_COUNT 1
 
@@ -68,8 +68,9 @@ out vec4 fragColor;
 float calcAttenuation(PointLight pointLight)
 {
     float distance = length(pointLight.props.position - a_FragPos);
-    float attenuation = 1.0 / (pointLight.constant + pointLight.linear * distance + pointLight.quadratic * pow(distance, 2.0));
-    return attenuation;
+    float divisor = pointLight.constant + pointLight.linear * distance + pointLight.quadratic * pow(distance, 2.0);
+    // Return 0 attenuation if divisor is 0
+    return divisor > 0 ? 1.0 / divisor : 0.0;
 }
 
 float calcSpotlightIntensity(Spotlight spotlight, vec3 lightDir)
@@ -139,9 +140,10 @@ void main()
     // Generate diffuse and specular maps
     vec3 diffuseMap = texture(u_Material.diffuse, a_TexCoord).rgb;
     vec3 specularMap = texture(u_Material.specular, a_TexCoord).rgb;
-    // Transforms all non-zero -> 0 and 0 -> 1
-    vec3 invertedSpecularMap = abs(ceil(specularMap) - vec3(1.0));
-    vec3 emissionMap = invertedSpecularMap * u_EmissionLight * texture(u_Emission, a_TexCoord).rgb;
+    // TODO: add emissions if necessary or drop
+    //    // Transforms all non-zero -> 0 and 0 -> 1
+    //    vec3 invertedSpecularMap = abs(ceil(specularMap) - vec3(1.0));
+    //    vec3 emissionMap = invertedSpecularMap * u_EmissionLight * texture(u_Emission, a_TexCoord).rgb;
 
     // Properties
     vec3 norm = normalize(a_NormalVec);
@@ -151,10 +153,10 @@ void main()
     vec3 result = calcDirLight(u_DirectLight[0], norm, viewDir, diffuseMap, specularMap);
     // Phase 2: Point lights
     for (int i = 0; i < POINT_LIGHT_COUNT; ++i) {
-        result += calcPointLight(u_PointLight[i], norm, viewDir, diffuseMap, specularMap) + emissionMap;
+        result += calcPointLight(u_PointLight[i], norm, viewDir, diffuseMap, specularMap) /*+ emissionMap*/;
     }
-    // Phase 3: Spot light
-    result += calcSpotLight(u_Spotlight[0], norm, viewDir, diffuseMap, specularMap);
+    //    // Phase 3: Spot light
+    //    result += calcSpotLight(u_Spotlight[0], norm, viewDir, diffuseMap, specularMap);
 
     fragColor = vec4(result, 1.0);
 }

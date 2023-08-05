@@ -7,10 +7,10 @@
 namespace edu::gfx
 {
 
-Mesh::Mesh(std::vector<VertexData> &&vertices, std::vector<uint32_t> &&indices, std::vector<Texture> &&textures)
-    : vertices(std::move(vertices))
-    , vertIndices(std::move(indices))
-    , textures(std::move(textures))
+Mesh::Mesh(std::vector<VertexData> &&vertices_, std::vector<uint32_t> &&indices_, std::vector<Texture> &&textures_)
+    : vertices(std::move(vertices_))
+    , vertIndices(std::move(indices_))
+    , textures(std::move(textures_))
 {
 }
 

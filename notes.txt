@@ -1,0 +1,8 @@
+shared shaders, unique assets
+each object should point to some asset. Does it make sense? What if I want to have regular spheres, boxes and such?
+Are they not objects somehow?
+multiple objects can point to the same asset (should be possible to point to none?)
+
+write tests for object transformations
+write tests for light sources
+handle strings properly instead of putting `const std::string&` everywhere (not urgent)

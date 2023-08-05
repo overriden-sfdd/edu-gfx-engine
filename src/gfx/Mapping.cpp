@@ -12,11 +12,19 @@ auto Mapping::AssetModelResource() -> const AssetModelMap &
     static const AssetModelMap assetModelMap {
         {
             AssetId::Backpack,
-            {"data/backpack/backpack.obj", "data/shaders/test.vert", "data/shaders/test.frag"},
+            {
+                "data/backpack/backpack.obj",
+                "data/shaders/general.vert",
+                "data/shaders/general.frag",
+            },
         },
         {
             AssetId::HangingLight,
-            {"data/low_poly_hanging_light/hanging_light.obj", "data/shaders/test.vert", "data/shaders/test.frag"},
+            {
+                "data/low_poly_hanging_light/hanging_light.obj",
+                "data/shaders/general.vert",
+                "data/shaders/general.frag",
+            },
         },
     };
 

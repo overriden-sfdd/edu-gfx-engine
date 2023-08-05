@@ -12,11 +12,15 @@
 #include <memory>
 #include <vector>
 
+namespace edu::objects
+{
+class Object;
+} // namespace edu::objects
+
 namespace edu::gfx
 {
 class Mesh;
 class AssetModel;
-class Asset;
 } // namespace edu::gfx
 
 namespace edu::renderer
@@ -28,8 +32,7 @@ public:
     explicit Renderer(std::unique_ptr<gfx::AssetModel> assetModel);
     ~Renderer() = default;
 
-    gfx::Asset *setCurrentAsset(gfx::Mapping::AssetId assetId);
-    gfx::Mapping::AssetId currentAssetId() const;
+    void setCurrentObject(objects::Object *object);
     void onRenderStep();
     void draw();
     void clean();
@@ -53,8 +56,12 @@ private:
     std::vector<uint32_t> m_VBOs;
     std::vector<uint32_t> m_EBOs;
 
+    // TODO: remove this temporary solution
+public:
     std::unique_ptr<gfx::AssetModel> m_assetModel;
-    gfx::Asset *m_currentAsset {nullptr};
+
+private:
+    objects::Object *m_currentObject {nullptr};
 
     // MVP matrices
     glm::mat4 m_modelMatrix;

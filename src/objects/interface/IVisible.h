@@ -6,18 +6,18 @@
 
 #include <glm/vec3.hpp>
 
-namespace edu::objects
+namespace edu::objects::interface
 {
 
-class IObject
+class IVisible
 {
 public:
     using ColorType = glm::vec3;
 
-    ~IObject() = default;
+    ~IVisible() = default;
 
     virtual const ColorType &color() const = 0;
     virtual void setColor(const ColorType &color) = 0;
 };
 
-} // namespace edu::objects
+} // namespace edu::objects::interface
